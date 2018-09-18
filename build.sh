@@ -33,14 +33,22 @@ else
     done
 fi
 
-echo Choose a target to build:
-counter=0
+counter=1
 for filename in defconfigs/*; do
-    echo "${counter}.) ${filename#defconfigs/}"
+    name=$(basename "${filename}")
+    echo "${counter}.) ${name%_defconfig}"
+    targets[counter]=${name}
+    counter=$((counter+1))
 done
 
-#(
-    #cd buildroot || return
-    #make nginx1_defconfig
-    #make
-#)
+
+echo -n "Choose a target to build: "
+read target_num
+
+target=${targets[target_num]}
+echo
+
+(
+    cd buildroot || return
+    make "${target}"
+)
