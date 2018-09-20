@@ -102,3 +102,5 @@ if [ ! -f ./rootfs.tar ]; then
 fi
 
 echo resulting image is $(du -sh ./buildroot/output/images/rootfs.tar)
+
+docker build --rm -f Dockerfile -t "${target}:latest" .
