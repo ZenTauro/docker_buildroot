@@ -1,0 +1,2 @@
+buildroot/*
+!buildroot/output/images/rootfs.tar 

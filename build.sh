@@ -43,7 +43,7 @@ function update-buildroot() {
 }
 
 
-if [ "$1" == '-h' ]; then 
+if [ "$1" == '-h' ] || [ "$1" == '--help' ]; then 
     echo Usage:
     echo 'interactive mode $ ./build.sh'
     echo 'update buildroot and targets $ ./build.sh -u'
@@ -62,7 +62,7 @@ if [ "$1" == '-u' ]; then
     update-buildroot > /dev/null
 else
 
-    show_gpl
+    # show_gpl
 
     if [ ! -d "./buildroot/.git"  ]; then
         git submodule update --recursive --init
@@ -88,14 +88,18 @@ echo -n "Choose a target to build: "
 read target_num
 
 target=${targets[target_num]}
+if [ target == '' ]; then 
+    echo no such target
+    exit 1
+fi
 echo
 
 (
     cd buildroot || return
     make "${target}" > /dev/null || ( echo process failed && return 1 )
-    printf "Building ${name%_defconfig}\n\n"
-    make
-)
+    printf "Building ${target%_defconfig}\n\n"
+    make | tee ./build.log
+) || exit $?
 
 if [ ! -f ./rootfs.tar ]; then
     ln -s "./buildroot/output/images/rootfs.tar" .
@@ -103,4 +107,4 @@ fi
 
 echo resulting image is $(du -sh ./buildroot/output/images/rootfs.tar)
 
-docker build --rm -f Dockerfile -t "${target}:latest" .
+docker build -f Dockerfile -t "${target}:latest" .
