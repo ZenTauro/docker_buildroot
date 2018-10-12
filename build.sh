@@ -107,4 +107,4 @@ fi
 
 echo resulting image is $(du -sh ./buildroot/output/images/rootfs.tar)
 
-docker build -f Dockerfile -t "${target}:latest" .
+docker build -f Dockerfile -t "${DOCKER_ID_USER}/${target}:latest" .
