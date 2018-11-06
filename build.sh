@@ -88,7 +88,7 @@ echo -n "Choose a target to build: "
 read target_num
 
 target=${targets[target_num]}
-if [ $target == '' ]; then 
+if [ $target == '' ]; then
     echo no such target
     exit 1
 fi
