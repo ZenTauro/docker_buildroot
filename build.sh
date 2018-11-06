@@ -76,7 +76,7 @@ else
 fi
 
 counter=1
-for filename in defconfigs/*; do
+for filename in targets/*; do
     name=$(basename "${filename}")
     echo "${counter}.) ${name%_defconfig}"
     targets[counter]=${name}
