@@ -88,7 +88,7 @@ echo -n "Choose a target to build: "
 read target_num
 
 target=${targets[target_num]}
-if [ target == '' ]; then 
+if [ $target == '' ]; then 
     echo no such target
     exit 1
 fi
@@ -107,4 +107,7 @@ fi
 
 echo resulting image is $(du -sh ./buildroot/output/images/rootfs.tar)
 
+if [ ${DOCKER_ID_USER} == '' ]; then
+    echo "DOCKER_ID_USER variable not set, please set it with your docker account name"
+fi
 docker build -f Dockerfile -t "${DOCKER_ID_USER}/${target}:latest" .
