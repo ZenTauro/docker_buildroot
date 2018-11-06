@@ -25,26 +25,31 @@ under certain conditions; type cat "LICENSE.md" for details.'
 }
 
 function update-buildroot() {
+    # it cleans up the configs directory
     if [ -d "./buildroot/scripts" ]; then
         rm -rf ./buildroot/configs
     fi
-    if [ ! -d "./buildroot/.git"  ]; then
+    # If the buildroot submodule is initialized, it cleans it
+    # to prevent merging errors
+    if [ -d "./buildroot/.git"  ]; then
         (
             cd buildroot || return 1
             git clean -f
             git reset --hard HEAD
         )
-        git submodule update --recursive --init
     fi
+    # This updates it and then updates it
+    git submodule update --recursive --init
 
-    for filename in defconfigs/*; do
-        ln -s "../../$filename" ./buildroot/configs/
+    # Links back the targets
+    for filename in targets/*; do
+        ln -s "../../${filename}/${filename}.defconfig" "./buildroot/configs/${filename}_defconfig"
     done
 }
 
 
-if [ "$1" == '-h' ] || [ "$1" == '--help' ]; then 
-    echo Usage:
+if [ "$1" == '-h' ] || [ "$1" == '--help' ]; then
+    echo 'Usage:'
     echo 'interactive mode $ ./build.sh'
     echo 'update buildroot and targets $ ./build.sh -u'
     echo 'help $ ./build.sh -h'
@@ -52,41 +57,45 @@ if [ "$1" == '-h' ] || [ "$1" == '--help' ]; then
     exit
 fi
 
-if [ "$1" == -v ]; then 
+if [ "$1" == -v ]; then
     echo version 1
     exit
 fi
 
+# Detect update flag
 if [ "$1" == '-u' ]; then
     echo updating buildroot
     update-buildroot > /dev/null
 else
-
-    # show_gpl
-
     if [ ! -d "./buildroot/.git"  ]; then
         git submodule update --recursive --init
     fi
-    for filename in defconfigs/*; do
-        if [ ! -f "./buildroot/configs/${filename#defconfigs/}" ]; then
+    # Detect whether all the targets are present
+    # if not, add them
+    for filename in targets/*; do
+        if [ ! -f "./buildroot/configs/${filename}_defconfig" ]; then
             echo "Linking \"${filename}\""
-            ln -s "../../$filename" ./buildroot/configs/
+            ln -s "../../${filename}/${filename}.defconfig" ./buildroot/configs/${filename}_defconfig
         fi
     done
 fi
 
 counter=1
+# List all targets by their basename and count them
 for filename in targets/*; do
     name=$(basename "${filename}")
-    echo "${counter}.) ${name%_defconfig}"
+    echo "${counter}.) ${name}"
     targets[counter]=${name}
     counter=$((counter+1))
 done
 
 
+# Select the target
 echo -n "Choose a target to build: "
 read target_num
 
+# Detect whether the target exists
+# TODO do it better
 target=${targets[target_num]}
 if [ $target == '' ]; then
     echo no such target
@@ -95,19 +104,32 @@ fi
 echo
 
 (
-    cd buildroot || return
+    cd buildroot                 || return
+    # Apply the selected target config
     make "${target}" > /dev/null || ( echo process failed && return 1 )
-    printf "Building ${target%_defconfig}\n\n"
+    printf "Building ${target}\n\n"
+    # Build the selected target with a build log
     make | tee ./build.log
-) || exit $?
+) || exit $? # Exit gracefully (not really lol)
 
 if [ ! -f ./rootfs.tar ]; then
     ln -s "./buildroot/output/images/rootfs.tar" .
 fi
 
+# Change the Dockerfile to the current target's one
+if [ -f ./Dockerfile ]; then
+    rm Dockerfile
+    ln -s "./targets/${target}/dockerfile" "./Dockerfile"
+fi
+
+# Show resulting tarball size
 echo resulting image is $(du -sh ./buildroot/output/images/rootfs.tar)
 
+# For taging the image, detect if the Docker id
+# var is set
 if [ ${DOCKER_ID_USER} == '' ]; then
     echo "DOCKER_ID_USER variable not set, please set it with your docker account name"
 fi
+
+# Build the container image
 docker build -f Dockerfile -t "${DOCKER_ID_USER}/${target}:latest" .
