@@ -1,3 +1,4 @@
 FROM scratch
 ADD  rootfs.tar /
-ENTRYPOINT ["/usr/sbin/nginx"]
+ADD  https://nightly.odoo.com/9.0/nightly/src/odoo_9.0.latest.tar.gz
+ENTRYPOINT ["/usr/bin/python"]
