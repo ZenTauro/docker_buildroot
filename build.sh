@@ -44,8 +44,9 @@ function update-buildroot() {
     # Links back the targets
     for filename in targets/*; do
         name=$(basename ${filename})
-        echo ln -s "../../targets/${name}/${name}.defconfig" "./buildroot/configs/${name}_defconfig"
-        ln -s "../../targets/${name}/${name}.defconfig" "./buildroot/configs/${name}_defconfig"
+        if [ ! -f "./buildroot/configs/${name}_defconfig" ]; then
+            ln -s "../../targets/${name}/${name}.defconfig" "./buildroot/configs/${name}_defconfig"
+        fi
     done
 }
 
@@ -78,8 +79,6 @@ else
         name=$(basename ${filename})
         if [ ! -f "./buildroot/configs/${name}_defconfig" ]; then
             echo "Linking \"${name}\""
-            echo ln -s "../../targets/${name}/${name}.defconfig" "./buildroot/configs/${name}_defconfig"
-            echo  ! -f "./buildroot/configs/${name}_defconfig" 
             ln -s "../../targets/${name}/${name}.defconfig" "./buildroot/configs/${name}_defconfig"
         fi
     done
