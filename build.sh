@@ -110,7 +110,7 @@ echo
 (
     cd buildroot                 || return
     # Apply the selected target config
-    make "${target}" > /dev/null || ( echo process failed && return 1 )
+    make "${target}_defconfig" > /dev/null || ( echo process failed && return 1 )
     printf "Building ${target}\n\n"
     # Build the selected target with a build log
     make | tee ./build.log
