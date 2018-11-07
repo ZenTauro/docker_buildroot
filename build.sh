@@ -43,7 +43,9 @@ function update-buildroot() {
 
     # Links back the targets
     for filename in targets/*; do
-        ln -s "../../${filename}/${filename}.defconfig" "./buildroot/configs/${filename}_defconfig"
+        name=$(basename ${filename})
+        echo ln -s "../../targets/${name}/${name}.defconfig" "./buildroot/configs/${name}_defconfig"
+        ln -s "../../targets/${name}/${name}.defconfig" "./buildroot/configs/${name}_defconfig"
     done
 }
 
@@ -65,7 +67,7 @@ fi
 # Detect update flag
 if [ "$1" == '-u' ]; then
     echo updating buildroot
-    update-buildroot > /dev/null
+    update-buildroot #> /dev/null
 else
     if [ ! -d "./buildroot/.git"  ]; then
         git submodule update --recursive --init
@@ -73,9 +75,12 @@ else
     # Detect whether all the targets are present
     # if not, add them
     for filename in targets/*; do
-        if [ ! -f "./buildroot/configs/${filename}_defconfig" ]; then
-            echo "Linking \"${filename}\""
-            ln -s "../../${filename}/${filename}.defconfig" "./buildroot/configs/${filename}_defconfig"
+        name=$(basename ${filename})
+        if [ ! -f "./buildroot/configs/${name}_defconfig" ]; then
+            echo "Linking \"${name}\""
+            echo ln -s "../../targets/${name}/${name}.defconfig" "./buildroot/configs/${name}_defconfig"
+            echo  ! -f "./buildroot/configs/${name}_defconfig" 
+            ln -s "../../targets/${name}/${name}.defconfig" "./buildroot/configs/${name}_defconfig"
         fi
     done
 fi
