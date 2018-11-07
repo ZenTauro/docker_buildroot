@@ -75,7 +75,7 @@ else
     for filename in targets/*; do
         if [ ! -f "./buildroot/configs/${filename}_defconfig" ]; then
             echo "Linking \"${filename}\""
-            ln -s "../../${filename}/${filename}.defconfig" ./buildroot/configs/${filename}_defconfig
+            ln -s "../../${filename}/${filename}.defconfig" "./buildroot/configs/${filename}_defconfig"
         fi
     done
 fi
@@ -127,7 +127,7 @@ echo resulting image is $(du -sh ./buildroot/output/images/rootfs.tar)
 
 # For taging the image, detect if the Docker id
 # var is set
-if [ ${DOCKER_ID_USER} == '' ]; then
+if [ "$DOCKER_ID_USER" == '' ]; then
     echo "DOCKER_ID_USER variable not set, please set it with your docker account name"
 fi
 
