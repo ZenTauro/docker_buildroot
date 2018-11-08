@@ -1,1 +1,1 @@
-./targets/initial/dockerfile
+./targets/rust-dev/dockerfile
