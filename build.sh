@@ -19,9 +19,11 @@
 function show_gpl() {
     echo \
 'Copyright (C) 2018  zentauro
-This program comes with ABSOLUTELY NO WARRANTY; for details type ./build.sh -h .
+This program comes with ABSOLUTELY NO WARRANTY; for details type ./build.sh -h
 This is free software, and you are welcome to redistribute it
-under certain conditions; type cat "LICENSE.md" for details.'
+under certain conditions;
+
+Type cat "LICENSE.md" for details.'
 }
 
 function update-buildroot() {
@@ -50,61 +52,103 @@ function update-buildroot() {
     done
 }
 
-
-if [ "$1" == '-h' ] || [ "$1" == '--help' ]; then
+function usage() {
     echo 'Usage:'
-    echo 'interactive mode $ ./build.sh'
-    echo 'update buildroot and targets $ ./build.sh -u'
-    echo 'help $ ./build.sh -h'
-    echo 'version info and license $ ./build.sh -v'
+    printf "\t%s [-u] [-r] [-v] [-h] [-t TARGET_NAME]\n" "${0}"
+    echo
+    printf "If no target is provided, it will run iteractively\n"
+    printf '\t-t TARGET_NAME build the given TARGET_NAME\n'
+    printf '\t-u Update buildroot and available targets\n'
+    printf '\t-r Rebuild target\n'
+    printf '\t-l List available targets and exit\n'
+    printf '\t-h Print this usage message\n'
+    printf '\t-v Print version info and license info\n'
+    exit
+}
+
+# For taging the image, detect if the Docker id
+# var is set
+if [ "${DOCKER_ID_USER}" == '' ]; then
+    echo "DOCKER_ID_USER variable not set, please set it with your docker account name"
     exit
 fi
 
-if [ "$1" == -v ]; then
-    echo version 1
-    exit
-fi
+# Unset the target var, just in case
+unset target
+unset rebuild_mode
+# Parse the flags passed
+while getopts "lurvht:" o; do
+    case "${o}" in
+        u)
+            echo updating buildroot
+            update-buildroot ;;
+        r)
+            echo rebuild mode set
+            rebuild_mode=true ;;
+        l)
+            onlylist=true ;;
+        v)
+            echo version 1
+            echo
+            show_gpl
+            exit ;;
+        h)
+            usage
+            exit  ;;
+        t)
+            target=${OPTARG} ;;
+    esac
+done
 
-# Detect update flag
-if [ "$1" == '-u' ]; then
-    echo updating buildroot
-    update-buildroot #> /dev/null
-else
-    if [ ! -d "./buildroot/.git"  ]; then
-        git submodule update --recursive --init
+if [ ! -d "./buildroot/.git"  ]; then
+    git submodule update --recursive --init
+fi
+# Detect whether all the targets are present
+# if not, add them
+for filename in targets/*; do
+    name=$(basename ${filename})
+    if [ ! -f "./buildroot/configs/${name}_defconfig" ]; then
+        echo "Linking \"${name}\""
+        ln -s "../../targets/${name}/${name}.defconfig" "./buildroot/configs/${name}_defconfig"
     fi
-    # Detect whether all the targets are present
-    # if not, add them
-    for filename in targets/*; do
-        name=$(basename ${filename})
-        if [ ! -f "./buildroot/configs/${name}_defconfig" ]; then
-            echo "Linking \"${name}\""
-            ln -s "../../targets/${name}/${name}.defconfig" "./buildroot/configs/${name}_defconfig"
-        fi
-    done
-fi
+done
 
+unset istarget
+istarget=false
+unset counter
 counter=1
-# List all targets by their basename and count them
+# List all targets by their basename and count them,
+# if non interactive, also check if the target exists
 for filename in targets/*; do
     name=$(basename "${filename}")
-    echo "${counter}.) ${name}"
+    if [ ! ${target} ]; then
+        echo "${counter}.) ${name}"
+    fi
     targets[counter]=${name}
+    if [ "${target}" == "${name}" ]; then
+        istarget=true
+    fi
     counter=$((counter+1))
 done
 
+if [ "${onlylist}" == true ]; then
+    exit
+fi
 
-# Select the target
-echo -n "Choose a target to build: "
-read target_num
+# If no target provided, run interactive
+if [ ! ${target} ]; then
+    # Select the target
+    echo -n "Choose a target to build: "
+    read target_num
+    target=${targets[target_num]}
+fi
 
 # Detect whether the target exists
-# TODO do it better
-target=${targets[target_num]}
-if [ $target == '' ]; then
+if [[ $target == '' || $istarget == false ]]; then
     echo no such target
     exit 1
 fi
+
 echo
 
 (
@@ -112,8 +156,14 @@ echo
     # Apply the selected target config
     make "${target}_defconfig" > /dev/null || ( echo process failed && return 1 )
     printf "Building ${target}\n\n"
+
     # Build the selected target with a build log
-    make | tee ./build.log
+    if [ "${rebuild_mode}" == true ]; then
+        make | tee ./build.log
+    else
+        make clean all | tee ./build.log
+    fi
+
 ) || exit $? # Exit gracefully (not really lol)
 
 if [ ! -f ./rootfs.tar ]; then
@@ -129,11 +179,6 @@ fi
 # Show resulting tarball size
 echo resulting image is $(du -sh ./buildroot/output/images/rootfs.tar)
 
-# For taging the image, detect if the Docker id
-# var is set
-if [ "$DOCKER_ID_USER" == '' ]; then
-    echo "DOCKER_ID_USER variable not set, please set it with your docker account name"
-fi
 
 # Build the container image
 docker build -f Dockerfile -t "${DOCKER_ID_USER}/${target}:latest" .
