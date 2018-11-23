@@ -47,7 +47,8 @@ function update-buildroot() {
     for filename in targets/*; do
         name=$(basename ${filename})
         if [ ! -f "./buildroot/configs/${name}_defconfig" ]; then
-            ln -s "../../targets/${name}/${name}.defconfig" "./buildroot/configs/${name}_defconfig"
+            ln -s "../../targets/${name}/${name}.defconfig" \
+                  "./buildroot/configs/${name}_defconfig"
         fi
     done
 }
@@ -109,7 +110,8 @@ for filename in targets/*; do
     name=$(basename ${filename})
     if [ ! -f "./buildroot/configs/${name}_defconfig" ]; then
         echo "Linking \"${name}\""
-        ln -s "../../targets/${name}/${name}.defconfig" "./buildroot/configs/${name}_defconfig"
+        ln -s "../../targets/${name}/${name}.defconfig" \
+              "./buildroot/configs/${name}_defconfig"
     fi
 done
 
@@ -152,16 +154,16 @@ fi
 echo
 
 (
-    cd buildroot                 || return
+    cd buildroot                           || return
     # Apply the selected target config
     make "${target}_defconfig" > /dev/null || ( echo process failed && return 1 )
     printf "Building ${target}\n\n"
 
     # Build the selected target with a build log
     if [ "${rebuild_mode}" == true ]; then
-        make | tee ./build.log
-    else
         make clean all | tee ./build.log
+    else
+        make | tee ./build.log
     fi
 
 ) || exit $? # Exit gracefully (not really lol)
