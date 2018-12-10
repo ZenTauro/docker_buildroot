@@ -97,6 +97,7 @@ fi
 # Unset the target var, just in case
 unset target
 unset rebuild_mode
+unset new_name
 # Parse the flags passed
 while getopts "nlurvht:" o; do
     case "${o}" in
@@ -119,12 +120,17 @@ while getopts "nlurvht:" o; do
         t)
             target=${OPTARG} ;;
         n)
-            new_name=""
-            echo -n "Enter a new name: "
-            read new_name
-            new_target ${new_name} ;;
+            new_name="some" ;;
     esac
 done
+
+if [ "${new_name}" == some ]; then 
+    if [ "${target}" == '' ]; then
+        echo -n "Enter a new name: "
+        read target
+    fi
+    new_target ${target}
+fi
 
 if [ ! -d "./buildroot/.git"  ]; then
     git submodule update --recursive --init
@@ -199,7 +205,7 @@ if [ ! -f ./rootfs.tar ]; then
 fi
 
 # Change the Dockerfile to the current target's one
-if [ -f ./Dockerfile ]; then
+if [ -L ./Dockerfile ]; then
     rm Dockerfile
     ln -s "./targets/${target}/dockerfile" "./Dockerfile"
 fi

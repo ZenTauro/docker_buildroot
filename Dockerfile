@@ -1,1 +1,1 @@
-./targets/hello/dockerfile
+./targets/foo/dockerfile
