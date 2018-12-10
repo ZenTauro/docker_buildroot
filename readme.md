@@ -75,3 +75,6 @@ bootloader are needed.
 
 In the **Filesystem** screen the format in which the rootfs image is saved,
 is specified. The one used here is a tarball.
+
+For more information, please refer to the buildroot
+[official documentation](https://buildroot.org/docs.html).
