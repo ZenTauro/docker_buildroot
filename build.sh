@@ -54,7 +54,7 @@ function update-buildroot() {
 }
 
 function new_target() {
-    if [ -d "./targets/$1" ]; then 
+    if [ -d "./targets/$1" ]; then
         echo "Target $1 already exists"
         exit 1
     fi
@@ -63,22 +63,28 @@ function new_target() {
     cp "targets/initial/dockerfile" "targets/$1/dockerfile"
     cp "targets/initial/initial.defconfig" "targets/$1/$1.defconfig"
     update-buildroot
+    edit_target $1
+}
+
+function edit_target() {
     (
         cd buildroot || return 1
-        echo "applying target"
-        make "$1_defconfig" > /dev/null
+        echo "applying target $1"
+        make "$1_defconfig" > /dev/null || return 2
         make menuconfig
         echo "saving defconfig, this might take a little while"
         make savedefconfig
-    )
+    ) || return $?
 }
 
 function usage() {
     echo 'Usage:'
-    printf "\t%s [-u] [-r] [-v] [-h] [-t TARGET_NAME]\n" "${0}"
+    printf "\t%s [-u] [-r] [-v] [-h] [-n] [-t TARGET_NAME]\n" "${0}"
     echo
     printf "If no target is provided, it will run iteractively\n"
     printf '\t-t TARGET_NAME build the given TARGET_NAME\n'
+    printf '\t-n Create a new target\n'
+    printf '\t-e Edit a target target\n'
     printf '\t-u Update buildroot and available targets\n'
     printf '\t-r Rebuild target\n'
     printf '\t-l List available targets and exit\n'
@@ -99,7 +105,7 @@ unset target
 unset rebuild_mode
 unset new_name
 # Parse the flags passed
-while getopts "nlurvht:" o; do
+while getopts "enlurvht:" o; do
     case "${o}" in
         u)
             echo updating buildroot
@@ -121,15 +127,17 @@ while getopts "nlurvht:" o; do
             target=${OPTARG} ;;
         n)
             new_name="some" ;;
+        e)
+            edittarget="true" ;;
     esac
 done
 
-if [ "${new_name}" == some ]; then 
+if [ "${new_name}" == some ]; then
     if [ "${target}" == '' ]; then
         echo -n "Enter a new name: "
         read target
     fi
-    new_target ${target}
+    new_target ${target} || exit
 fi
 
 if [ ! -d "./buildroot/.git"  ]; then
@@ -163,6 +171,19 @@ for filename in targets/*; do
     fi
     counter=$((counter+1))
 done
+
+if [ "${edittarget}" == "true" ]; then
+    if [ "${target}" == '' ]; then
+        echo -n "Enter target: "
+        read target_num
+        target=${targets[target_num]}
+        if [ "${target}" == '' ]; then
+            echo no such target
+            exit 2
+        fi
+    fi
+    edit_target ${target} || exit
+fi
 
 if [ "${onlylist}" == true ]; then
     exit
