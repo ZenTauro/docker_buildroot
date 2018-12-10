@@ -68,6 +68,8 @@ function new_target() {
         echo "applying target"
         make "$1_defconfig" > /dev/null
         make menuconfig
+        echo "saving defconfig, this might take a little while"
+        make savedefconfig
     )
 }
 
@@ -120,8 +122,7 @@ while getopts "nlurvht:" o; do
             new_name=""
             echo -n "Enter a new name: "
             read new_name
-            new_target ${new_name}
-            exit ;;
+            new_target ${new_name} ;;
     esac
 done
 
@@ -167,11 +168,13 @@ if [ ! ${target} ]; then
     echo -n "Choose a target to build: "
     read target_num
     target=${targets[target_num]}
+    istarget=true
+    echo "${target} selected"
 fi
 
 # Detect whether the target exists
-if [[ $target == '' || $istarget == false ]]; then
-    echo no such target
+if [[ "${target}" == '' || "${istarget}" == false ]]; then
+    echo "no such target"
     exit 1
 fi
 
@@ -189,7 +192,6 @@ echo
     else
         make | tee ./build.log
     fi
-
 ) || exit $? # Exit gracefully (not really lol)
 
 if [ ! -f ./rootfs.tar ]; then
