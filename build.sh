@@ -53,6 +53,24 @@ function update-buildroot() {
     done
 }
 
+function new_target() {
+    if [ -d "./targets/$1" ]; then 
+        echo "Target $1 already exists"
+        exit 1
+    fi
+    echo "creating $1"
+    mkdir -p "targets/$1/"
+    cp "targets/initial/dockerfile" "targets/$1/dockerfile"
+    cp "targets/initial/initial.defconfig" "targets/$1/$1.defconfig"
+    update-buildroot
+    (
+        cd buildroot || return 1
+        echo "applying target"
+        make "$1_defconfig" > /dev/null
+        make menuconfig
+    )
+}
+
 function usage() {
     echo 'Usage:'
     printf "\t%s [-u] [-r] [-v] [-h] [-t TARGET_NAME]\n" "${0}"
@@ -78,7 +96,7 @@ fi
 unset target
 unset rebuild_mode
 # Parse the flags passed
-while getopts "lurvht:" o; do
+while getopts "nlurvht:" o; do
     case "${o}" in
         u)
             echo updating buildroot
@@ -95,9 +113,15 @@ while getopts "lurvht:" o; do
             exit ;;
         h)
             usage
-            exit  ;;
+            exit ;;
         t)
             target=${OPTARG} ;;
+        n)
+            new_name=""
+            echo -n "Enter a new name: "
+            read new_name
+            new_target ${new_name}
+            exit ;;
     esac
 done
 
