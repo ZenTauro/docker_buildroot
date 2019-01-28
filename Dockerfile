@@ -1,1 +1,1 @@
-./targets/mail/dockerfile
+./targets/nginx/dockerfile
