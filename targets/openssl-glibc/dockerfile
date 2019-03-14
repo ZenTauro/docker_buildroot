@@ -1,7 +1,0 @@
-FROM alpine:latest as cert-img
-RUN  apk --no-cache add ca-certificates
-
-FROM scratch
-ADD  rootfs.tar /
-WORKDIR /etc/ssl/certs
-COPY --from=cert-img /etc/ssl/certs/* ./

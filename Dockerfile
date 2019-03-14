@@ -1,1 +1,1 @@
-./targets/mail/dockerfile
+./targets/openssl-glibc/dockerfile

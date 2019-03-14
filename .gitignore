@@ -1,1 +1,10 @@
+# Editor temp files
+**/.*.swp
+**/.#*
+
+# User files
 ./Dockerfile
+./rootfs.tar
+
+# Targes as packages
+./targets
