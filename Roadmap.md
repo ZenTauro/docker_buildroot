@@ -10,7 +10,7 @@ At the top level there must be three files:
 ├── dockerfile
 ├── manifest.json
 ├── LICENSE
-├──
+:
 └── target-name.defconfig
 ```
 
