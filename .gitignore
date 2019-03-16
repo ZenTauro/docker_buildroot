@@ -8,3 +8,7 @@
 
 # Targes as packages
 ./targets
+
+# Rust stuff
+/target
+**/*.rs.bk

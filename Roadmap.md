@@ -1,33 +1,36 @@
 # 1.0.0 Wishlist
 - Move targets to other repos and treat them like packages
-- Migrate to rust
+- Migrate to rust and bash
 - Update readme
 
 # New project structure
 Bundle a compiled version of the program with the default
 workspace layout and without the sources in the releases tab.
 
-Motivations to move to this proposed layout:
-- While bash is universally available and other scripting
-  languages like python and js can get the work done they
-  present some drawbacks.
-  - **Python:** I personally do not like the syntax and the
+While bash is universally available and other scripting
+languages like python and js can get the work done they
+present some drawbacks.
+- **Python:** I personally do not like the syntax and the
   dependency management with pip is somewhat cumbersome in
   the sense that it defaults to globally install packages or
   you need to create a virtualenv.
-  - **JavaScript:** Dependency management with npm is really
+- **JavaScript:** Dependency management with npm is really
   nice, however the resulting `node_modules` tends to weight
   more than the entire universe with just one dependency and
   unless you develop js, node is not that common. Also, working
   with webpack, parcel, etc. is a pain.
-  - **Bash:** Since the we mainly interact with terminal
+- **Bash:** Since the we mainly interact with terminal
   commands, bash is a great fit for this application. However,
   there is no dependency management tool and for creating CLI
   applications it stops being ergonomic.
-  - **Rust:** It is the language I'm more comfortable on. It
+- **Rust:** It is the language I'm more comfortable on. It
   provides interfaces to work with git repositories and creating
   CLIs with autocompletion. Moreover, it produces a binary that
   only depends on libc.
+
+The application will provide the CLI with rust and will interact
+with bash scripts placed under `${project_root}/scripts` which
+will have a `script_name.sh` and a `script_name.usage` file.
 
 For the tool to be extensible, it needs to support some kind of
 packages. Since the only possible nested dependencies will be

@@ -26,57 +26,6 @@ under certain conditions;
 Type cat "LICENSE.md" for details.'
 }
 
-function update-buildroot() {
-    # it cleans up the configs directory
-    if [ -d "./buildroot/scripts" ]; then
-        rm -rf ./buildroot/configs
-    fi
-    # If the buildroot submodule is initialized, it cleans it
-    # to prevent merging errors
-    if [ -d "./buildroot/.git"  ]; then
-        (
-            cd buildroot || return 1
-            git clean -f
-            git reset --hard HEAD
-        )
-    fi
-    # This updates it and then updates it
-    git submodule update --recursive --init
-
-    # Links back the targets
-    for filename in targets/*; do
-        name=$(basename ${filename})
-        if [ ! -f "./buildroot/configs/${name}_defconfig" ]; then
-            ln -s "../../targets/${name}/${name}.defconfig" \
-                  "./buildroot/configs/${name}_defconfig"
-        fi
-    done
-}
-
-function new_target() {
-    if [ -d "./targets/$1" ]; then
-        echo "Target $1 already exists"
-        exit 1
-    fi
-    echo "creating $1"
-    mkdir -p "targets/$1/"
-    cp "targets/initial/dockerfile" "targets/$1/dockerfile"
-    cp "targets/initial/initial.defconfig" "targets/$1/$1.defconfig"
-    update-buildroot
-    edit_target $1
-}
-
-function edit_target() {
-    (
-        cd buildroot || return 1
-        echo "applying target $1"
-        make "$1_defconfig" > /dev/null || return 2
-        make menuconfig
-        echo "saving defconfig, this might take a little while"
-        make savedefconfig
-    ) || return $?
-}
-
 function usage() {
     echo 'Usage:'
     printf "\t%s [-u] [-r] [-v] [-h] [-n] [-t TARGET_NAME]\n" "${0}"
