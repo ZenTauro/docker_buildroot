@@ -7,7 +7,7 @@ extern crate git2;
 use clap::{Arg, App, SubCommand};
 
 fn main() {
-    let matches = App::new("build")
+    let args = App::new("build")
         .version("0.1.0")
         .author("ZenTauro <zentauro@riseup.net>")
         .about("Builds and/or configures a docker image")
@@ -59,4 +59,12 @@ Type cat \"LICENSE.md\" for details."
              .help("Update buildroot and available targets")
         )
         .get_matches();
+
+    match args.subcommand() {
+        ("new", Some(args)) => unimplemented!(),
+        ("list", Some(args)) => unimplemented!(),
+        ("build", Some(args)) => unimplemented!(),
+        ("new", Some(args)) => unimplemented!(),
+        _ => unimplemented!(),
+    }
 }
