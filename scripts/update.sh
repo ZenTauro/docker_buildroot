@@ -31,11 +31,11 @@ function update_buildroot() {
         )
     fi
     # This updates it and then updates it
-    git submodule update --recursive --init
+    git submodule update --recursive --init || return 2
 
     # Links back the targets
     for filename in targets/*; do
-        name=$(basename ${filename})
+        name=$(basename "${filename}")
         if [ ! -f "./buildroot/configs/${name}_defconfig" ]; then
             ln -s "../../targets/${name}/${name}.defconfig" \
                "./buildroot/configs/${name}_defconfig"

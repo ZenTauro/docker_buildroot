@@ -78,6 +78,9 @@ while getopts "enlurvht:" o; do
             new_name="some" ;;
         e)
             edittarget="true" ;;
+        *)
+            echo "Invalid flag"
+            exit ;;
     esac
 done
 
@@ -160,7 +163,7 @@ echo
     cd buildroot                           || return
     # Apply the selected target config
     make "${target}_defconfig" > /dev/null || ( echo process failed && return 1 )
-    printf "Building ${target}\n\n"
+    printf "Building %s\n\n" "${target}"
 
     # Build the selected target with a build log
     if [ "${rebuild_mode}" == true ]; then

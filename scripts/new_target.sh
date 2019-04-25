@@ -18,7 +18,6 @@
 
 function new_target() {
     if [ -d "./targets/$1" ]; then
-        echo "Target $1 already exists"
         exit 1
     fi
     echo "creating $1"
@@ -26,7 +25,7 @@ function new_target() {
     cp "targets/initial/dockerfile" "targets/$1/dockerfile"
     cp "targets/initial/initial.defconfig" "targets/$1/$1.defconfig"
     update-buildroot
-    edit_target $1
+    # edit_target "$1"
 }
 
-new_target
+new_target "$1" || exit 1
