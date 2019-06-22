@@ -16,16 +16,6 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-function new_target() {
-    if [ -d "./targets/$1" ]; then
-        exit 1
-    fi
-    echo "creating $1"
-    mkdir -p "targets/$1/"
-    cp "targets/initial/dockerfile" "targets/$1/dockerfile"
-    cp "targets/initial/initial.defconfig" "targets/$1/$1.defconfig"
-    update-buildroot
-    # edit_target "$1"
-}
+source scripts.lib.sh
 
-new_target "$1" || exit 1
+new_target "$1" || exit $?

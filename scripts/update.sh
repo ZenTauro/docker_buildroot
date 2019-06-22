@@ -16,31 +16,6 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-function update_buildroot() {
-    # it cleans up the configs directory
-    if [ -d "./buildroot/scripts" ]; then
-        rm -rf ./buildroot/configs
-    fi
-    # If the buildroot submodule is initialized, it cleans it
-    # to prevent merging errors
-    if [ -d "./buildroot/.git"  ]; then
-        (
-            cd buildroot || return 1
-            git clean -f
-            git reset --hard HEAD
-        )
-    fi
-    # This updates it and then updates it
-    git submodule update --recursive --init || return 2
-
-    # Links back the targets
-    for filename in targets/*; do
-        name=$(basename "${filename}")
-        if [ ! -f "./buildroot/configs/${name}_defconfig" ]; then
-            ln -s "../../targets/${name}/${name}.defconfig" \
-               "./buildroot/configs/${name}_defconfig"
-        fi
-    done
-}
+source scripts.lib.sh
 
 update_buildroot

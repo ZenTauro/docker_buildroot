@@ -16,15 +16,6 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-function edit_target() {
-    (
-        cd buildroot || return 1
-        echo "applying target $1"
-        make "${1}_defconfig" > /dev/null || return 2
-        make menuconfig
-        echo "saving defconfig, this might take a little while"
-        make savedefconfig
-    ) || return $?
-}
+source scripts.lib.sh
 
-edit_target "${1}"
+edit_target "${1}" || exit $?
