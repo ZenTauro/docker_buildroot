@@ -110,6 +110,7 @@ unset istarget
 istarget=false
 unset counter
 counter=1
+
 # List all targets by their basename and count them,
 # if non interactive, also check if the target exists
 for filename in targets/*; do

@@ -1,1 +1,1 @@
-./targets/openssl-glibc/dockerfile
+./targets/nginx/dockerfile

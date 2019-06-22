@@ -20,11 +20,11 @@ function edit_target() {
     (
         cd buildroot || return 1
         echo "applying target $1"
-        make "$1_defconfig" > /dev/null || return 2
+        make "${1}_defconfig" > /dev/null || return 2
         make menuconfig
         echo "saving defconfig, this might take a little while"
         make savedefconfig
     ) || return $?
 }
 
-edit_target
+edit_target "${1}"

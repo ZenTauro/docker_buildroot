@@ -8,7 +8,7 @@ extern crate self as lib;
 
 use clap::{Arg, App, SubCommand};
 use broot_docker::commands::{
-    new_target,
+    self,
     update_buildroot
 };
 
@@ -36,10 +36,17 @@ fn main() {
                     .arg(Arg::with_name("target")
                          .short("t")
                          .long("target")
-                         .help("Builds the provided TARGET")
+                         .help("Creates the TARGET")
                          .takes_value(true)
                          .required(true)
                          .value_name("TARGET")
+                    )
+                    .arg(Arg::with_name("from")
+                         .short("f")
+                         .long("from")
+                         .help("Creates the TARGET from a another")
+                         .takes_value(true)
+                         .value_name("TEMPLATE")
                     )
         )
         .subcommand(SubCommand::with_name("list")
@@ -88,17 +95,28 @@ fn main() {
     // corresponding subcommands
     match args.subcommand() {
         ("new", Some(args)) => {
-            let res = new_target(
+            let res = commands::new_target(
                 &args.value_of("target")
                     .expect("Something went wrong obtaining the target")
+            );
+            match res {
+                Err(e) => eprintln!("{:?}", e),
+                Ok (_) => (),
+            }
+        } ,
+        ("list",  Some(_)) => {
+            commands::list_targets();
+        },
+        ("build", Some(args)) => {
+            let res = commands::build(
+                &args.value_of("target").unwrap(),
+                args.is_present("rebuild"),
             );
             match res {
                 Err(e) => println!("{:?}", e),
                 Ok (_) => (),
             }
-        } ,
-        ("list",  Some(_args)) => unimplemented!(),
-        ("build", Some(_args)) => unimplemented!(),
+        },
         _ => {
             println!("Plese type \"broot-docker help\" to see how to use it");
         },
