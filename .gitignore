@@ -3,11 +3,11 @@
 **/.#*
 
 # User files
-./Dockerfile
-./rootfs.tar
+/Dockerfile
+/rootfs.tar
 
 # Targes as packages
-./targets
+/targets
 
 # Docs output
 /docs/output
