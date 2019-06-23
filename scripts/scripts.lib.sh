@@ -37,7 +37,9 @@
 ## This function modifies a given target
 ## @fn edit_target()
 ## @brief Modify a target
-## @param {target} $1 Target name
+## @param target $1 Target name
+## @return 1 if cd to buildroot fails \n
+##         2 if application of the target fails
 function edit_target() {
     (
         cd buildroot || return 1
@@ -50,11 +52,15 @@ function edit_target() {
 }
 
 ## This function creates a target (by default from the initial target),
-## applies it and then modifies it.
+## applies it and then modifies it. It should be called with an empty
+## string as the second parameter if the intention is to use the default
+## target.
 ## @fn new_target()
 ## @brief Create new target
-## @param {target} $1 Target name
-## @param {from} $2 Base target to build upon
+## @param target $1 Target name
+## @param from $2 Base target to build upon
+## @return 1 When there's a target already named `${target}`\n
+##         2 When the base target doesn't exist
 function new_target() {
     # Detect if the new target exits to prevent overwriting
     if [ -d "./targets/$1" ]; then
@@ -88,13 +94,24 @@ function new_target() {
 ## creates the docker image
 ## @fn build()
 ## @brief Create the docker container
-## @param {target} $1 The target to build
-## @param {rebuild_mode} $2 Whether it should rebuild or not
+## @param target $1 The target to build
+## @param rebuild_mode $2 [ "true" | "false" ] Whether it should rebuild or not
+## @return 1 When DOCKER_ID_USER is not present\n
+##         2 When target application fails\n
+##         3 When something unexpected happens
 function build() {
+    # TODO: detect if target exists
+    # TODO: Detect DOCKER_ID_USER
+    # TODO: run interactively
     target=$1
     rebuild_mode=$2
+
+    if [ "${DOCKER_ID_USER}" == "" ]; then
+        return 1
+    fi
+
     (
-        cd buildroot                           || return
+        cd buildroot                           || return 3
         # Apply the selected target config
         make "${target}_defconfig" > /dev/null || ( echo process failed && return 2 )
         printf "Building %s\n\n" "${target}"
@@ -121,7 +138,7 @@ function build() {
     echo resulting image is "$(du -sh ./buildroot/output/images/rootfs.tar)"
 
     # Build the container image
-    docker build -f Dockerfile -t "${DOCKER_ID_USER}/${target}:latest" .
+    docker build -f Dockerfile -t "${DOCKER_ID_USER}/${target}:latest" . || return 3
 }
 
 
@@ -129,6 +146,8 @@ function build() {
 ## links to the targets
 ## @fn update_buildroot()
 ## @brief Update buildroot installation
+## @return 2 When the buildroot submodule cannot be updated\n
+##         3 When something unexpected happens
 function update_buildroot() {
     # it cleans up the configs directory
     if [ -d "./buildroot/scripts" ]; then
@@ -139,10 +158,10 @@ function update_buildroot() {
     # to prevent merging errors
     if [ -d "./buildroot/.git"  ]; then
         (
-            cd buildroot || return 1
+            cd buildroot || return 3
             git clean -f
             git reset --hard HEAD
-        )
+        ) || return $?
     fi
 
     # This updates it and then updates it

@@ -6,6 +6,8 @@ extern crate git2;
 
 extern crate self as lib;
 
+use std::env;
+
 use clap::{Arg, App, SubCommand};
 use broot_docker::commands::{
     self,
@@ -13,6 +15,11 @@ use broot_docker::commands::{
 };
 
 fn main() {
+    env::var("DOCKER_ID_USER")
+        .expect(
+            "DOCKER_ID_USER is not set, please call the program again with DOCKER_ID_USER=${your docker id} ./broot-docker"
+        );
+
     // Here we create the argument parsing structure
     // TODO change to macro for compile time struct creation
     let _matches = clap_app!(buildroot =>
