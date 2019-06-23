@@ -10,17 +10,25 @@ pub mod commands {
         Killed    = 3,
     }
 
-    pub fn new_target(target: &str) -> Result<(), CmdErr> {
+    pub fn new_target(target: &str, maybe_base: Option<&str>) -> Result<(), CmdErr> {
         let attempt = Command::new("/bin/bash")
             .arg("./scripts/new_target.sh")
             .arg(target)
+            .arg(match maybe_base {
+                Some(base) => base,
+                None => "",
+            })
             .status();
 
         match attempt {
             Err(_) => Err(CmdErr::Internal),
-            Ok (ret) => match ret.code() {
-                Some(code) => Ok(println!("Exited with status: {}", code)),
-                None => Err(CmdErr::Killed),
+            Ok (ret) => {
+                match ret.code().unwrap() {
+                    0 => Ok(()),
+                    1 => Err(CmdErr::Collision), // Target already exists
+                    2 => Err(CmdErr::BuildErr),  // Base target not found
+                    _ => Err(CmdErr::Internal),
+                }
             }
         }
     }
@@ -65,11 +73,22 @@ pub mod commands {
     }
 
     pub fn list_targets() {
-        let dir_iter = read_dir("./targets")
-            .expect("Couldn't read the contents of the `targets` directory");
+        let dirs: Vec<String> = read_dir("./targets")
+            .expect("Couldn't read the contents of the `targets` directory")
+            .map(|dir| {
+                dir.unwrap().file_name().into_string().unwrap()
+            })
+            .collect();
 
-        for dir in dir_iter {
-            println!("{:?}", dir.unwrap().file_name())
+
+        if dirs.len() == 0 {
+            println!("No targets available");
+            return
         }
+
+        for dir in dirs {
+            println!("{}", &dir);
+        }
+
     }
 }

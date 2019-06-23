@@ -97,7 +97,8 @@ fn main() {
         ("new", Some(args)) => {
             let res = commands::new_target(
                 &args.value_of("target")
-                    .expect("Something went wrong obtaining the target")
+                    .expect("Something went wrong obtaining the target"),
+                args.value_of("from")
             );
             match res {
                 Err(e) => eprintln!("{:?}", e),

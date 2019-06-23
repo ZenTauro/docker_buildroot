@@ -16,8 +16,26 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+## @file
+## @author ZenTauro <zentauro@riseup.net>
+## @copyright GPLv3
+## @version 0.1
+## @brief Buildroot containers wrapper functions
+## @details
+## @par URL
+## https://git.digitales.cslabrecha.org/zentauro/buildroot_starter @n
+##
+## @par Purpose
+##
+## This are the functions used to manage the targets in the buildroot
+## containers wrapper
+##
+## @note
+## This tool is still under development, it might suffer significant
+## changes
+
 ## This function modifies a given target
-## @fn edit_target
+## @fn edit_target()
 ## @brief Modify a target
 ## @param {target} $1 Target name
 function edit_target() {
@@ -33,14 +51,14 @@ function edit_target() {
 
 ## This function creates a target (by default from the initial target),
 ## applies it and then modifies it.
-## @fn new_target
+## @fn new_target()
 ## @brief Create new target
 ## @param {target} $1 Target name
 ## @param {from} $2 Base target to build upon
 function new_target() {
     # Detect if the new target exits to prevent overwriting
     if [ -d "./targets/$1" ]; then
-        exit 1
+        return 1
     fi
 
     # Detect if a base target was provided
@@ -60,15 +78,15 @@ function new_target() {
     echo "creating $1"
     mkdir -p "targets/$1/"
 
-    cp "${base}/dockerfile" "targets/$1/dockerfile"
-    cp "${base}/initial.defconfig" "targets/$1/$1.defconfig"
+    cp "${base}/dockerfile"         "targets/$1/dockerfile"
+    cp "${base}/initial.defconfig"  "targets/$1/$1.defconfig"
 
     edit_target "$1" || return $?
 }
 
 ## This function takes a target, applies it, builds it and then
 ## creates the docker image
-## @fn build
+## @fn build()
 ## @brief Create the docker container
 ## @param {target} $1 The target to build
 ## @param {rebuild_mode} $2 Whether it should rebuild or not
@@ -109,7 +127,7 @@ function build() {
 
 ## This function cleans and updates the buildroot repo and updates the
 ## links to the targets
-## @fn update_buildroot
+## @fn update_buildroot()
 ## @brief Update buildroot installation
 function update_buildroot() {
     # it cleans up the configs directory

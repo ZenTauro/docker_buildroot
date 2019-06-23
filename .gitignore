@@ -9,6 +9,9 @@
 # Targes as packages
 ./targets
 
+# Docs output
+/docs/output
+
 # Rust stuff
 /target
 **/*.rs.bk

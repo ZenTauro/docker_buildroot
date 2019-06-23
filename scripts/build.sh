@@ -16,6 +16,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-source scripts.lib.sh
+scriptdir=$(echo $0 | sed 's/\/[^\/]*$//')
+source ${scriptdir}/scripts.lib.sh
 
 build "${1}" "${2}"
